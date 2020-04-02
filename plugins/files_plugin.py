@@ -283,13 +283,16 @@ class SearchFilesOperator(BaseOperator):
             _base_name, _file_extension = os.path.splitext(filename)
             _md5_file = ''.join([_base_name, ".md5"])
             if os.path.exists(_md5_file):
-                with open(_md5_file, 'rb', 0) as file, \
-                        mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as s:
-                    if s.find(_md5.encode('utf8')) != -1:
-                        log.info("Found file {} with md5 {}".format(filename, _md5))
-                        filenames_list.append(filename)
-                        dst_filename = ''.join([os.path.splitext(_md5_file)[0], ".md5_processed"])
-                        os.rename(_md5_file, dst_filename)
+                try:
+                    with open(_md5_file, 'rb', 0) as file, \
+                            mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as s:
+                        if s.find(_md5.encode('utf8')) != -1:
+                            log.info("Found file {} with md5 {}".format(filename, _md5))
+                            filenames_list.append(filename)
+                            dst_filename = ''.join([os.path.splitext(_md5_file)[0], ".md5_processed"])
+                            os.rename(_md5_file, dst_filename)
+                except Exception as e:
+                    log.exception(e)
         log.info(filenames_list)
         return filenames_list
 

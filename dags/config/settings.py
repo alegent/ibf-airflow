@@ -11,14 +11,6 @@ PROJECT_ROOT = os.path.dirname(
 )
 
 #
-# Paths
-#
-base_dir = os.getenv('BASE_DIR', '/var/data/')
-regions_base_dir = os.path.join(base_dir, 'regions')
-repository_base_dir = os.getenv('REPOSITORY_DIR', os.path.join(base_dir, 'repository'))
-templates_base_dir = os.getenv('TEMPLATES_DIR', os.path.join(PROJECT_ROOT, 'plugins', 'templates'))
-
-#
 # Dates
 #
 # yesterday at beginning of day

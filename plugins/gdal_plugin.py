@@ -216,7 +216,12 @@ class GDALTranslateOperator(BaseOperator):
         if isinstance(input_paths, six.string_types):
             input_paths = [input_paths]
 
-        working_dir = os.path.dirname(input_paths[0]) if len(input_paths) > 0 else input_paths
+        if not len(input_paths):
+            log.info("Nothing to process")
+            return None
+
+        log.info(input_paths[0])
+        working_dir = os.path.dirname(input_paths[0])
         try:
             os.makedirs(working_dir)
         except OSError as exc:
