@@ -1,7 +1,7 @@
 # ibf-airflow
 
---------------------------------------------------------------------------------------------------------------------------------
-
+----------------------------------------------------------------------------------------------------------------------------
+```
 sudo apt install rabbitmq-server
 sudo rabbitmq-plugins enable rabbitmq_management
 sudo systemctl enable rabbitmq-server
@@ -18,11 +18,12 @@ sudo rabbitmqctl set_permissions -p localhost airflow ".*" ".*" ".*"
 wget http://127.0.0.1:15672/cli/rabbitmqadmin
 chmod +x rabbitmqadmin
 sudo ./rabbitmqadmin declare queue --username=airflow --password=********* --vhost=localhost name=airflow_q durable=true
+```
 
 Admin UI : http://<airflow_host>:15672
 
---------------------------------------------------------------------------------------------------------------------------------
-
+----------------------------------------------------------------------------------------------------------------------------
+```
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
 sudo wget --no-check-certificate --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
@@ -50,9 +51,9 @@ sudo vim /etc/postgresql/11/main/pg_hba.conf
 
 sudo service postgresql restart
 sudo systemctl enable postgresql
-
---------------------------------------------------------------------------------------------------------------------------------
-
+```
+----------------------------------------------------------------------------------------------------------------------------
+```
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 
@@ -93,7 +94,8 @@ export AIRFLOW_HOME=/home/airflow/ibf-airflow
 sed -i 's/\/opt\/airflow/\/home\/airflow\/ibf-airflow/g' airflow.cfg
 
 airflow initdb
-
+```
+```python
   python
   >>> import airflow
   >>> from airflow import models, settings
@@ -108,11 +110,12 @@ airflow initdb
   >>> session.commit()
   >>> session.close()
   >>> exit()
-
---------------------------------------------------------------------------------------------------------------------------------
-
+```
+----------------------------------------------------------------------------------------------------------------------------
+```
 vim dags/config/s2_msavi.py
-
+```
+```python
   dag_schedule_interval = '0/10 * * * *'
 
   src_dir = '/home/nfs_sat_data/satfarming/sentinel2/it/master/_input_EGEOS_MSAVI'
@@ -124,9 +127,11 @@ vim dags/config/s2_msavi.py
   geoserver_workspace = "geonode"
   geoserver_store_name = "MSAVI"
   geoserver_layer = "MSAVI"
-
+```
+```
 vim dags/config/s2_ndvi.py
-
+```
+```python
   dag_schedule_interval = '0/10 * * * *'
 
   src_dir = '/home/nfs_sat_data/satfarming/sentinel2/it/master/_input_EGEOS_NDVI'
@@ -138,10 +143,12 @@ vim dags/config/s2_ndvi.py
   geoserver_workspace = "geonode"
   geoserver_store_name = "NDVI"
   geoserver_layer = "NDVI"
-
---------------------------------------------------------------------------------------------------------------------------------
+```
+----------------------------------------------------------------------------------------------------------------------------
+```
 sudo vim /etc/systemd/system/airflow-scheduler.service
-
+```
+```
   [Unit]
   Description=Airflow cron scheduler daemon
   After=network.target
@@ -157,15 +164,18 @@ sudo vim /etc/systemd/system/airflow-scheduler.service
 
   [Install]
   WantedBy=multi-user.target
-
+```
+```
 sudo systemctl daemon-reload
 sudo systemctl start airflow-scheduler
 sudo systemctl status airflow-scheduler
 sudo systemctl enable airflow-scheduler
-
---------------------------------------------------------------------------------------------------------------------------------
+```
+----------------------------------------------------------------------------------------------------------------------------
+```
 sudo vim /etc/systemd/system/airflow-webserver.service
-
+```
+```
   [Unit]
   Description=Airflow http webserver daemon
   After=network.target
@@ -181,16 +191,18 @@ sudo vim /etc/systemd/system/airflow-webserver.service
 
   [Install]
   WantedBy=multi-user.target
-
-
+```
+```
 sudo systemctl daemon-reload
 sudo systemctl start airflow-webserver
 sudo systemctl status airflow-webserver
 sudo systemctl enable airflow-webserver
-
---------------------------------------------------------------------------------------------------------------------------------
+```
+----------------------------------------------------------------------------------------------------------------------------
+```
 sudo vim /etc/systemd/system/airflow-worker.service
-
+```
+```
   [Unit]
   Description=Airflow celery worker daemon
   After=network.target
@@ -206,10 +218,11 @@ sudo vim /etc/systemd/system/airflow-worker.service
 
   [Install]
   WantedBy=multi-user.target
-
+```
+```
 sudo systemctl daemon-reload
 sudo systemctl start airflow-worker
 sudo systemctl status airflow-worker
 sudo systemctl enable airflow-worker
-
---------------------------------------------------------------------------------------------------------------------------------
+```
+----------------------------------------------------------------------------------------------------------------------------
