@@ -211,16 +211,18 @@ class MoveFilesOperator(BaseOperator):
             dst_filename = os.path.join(_dst_dir, os.path.basename(_dst_filename))
             log.info("Moving {} to {}".format(filepath, dst_filename))
             os.rename(filepath, dst_filename)
-            _base_name, _file_extension = os.path.splitext(_dst_filename)
 
-            _md5_file = os.path.join(self.src_dir, ''.join([_base_name, ".md5_processed"]))
-            log.info("Checking {} ...".format(_md5_file))
+            filenames_list.append(dst_filename)
+
+            _base_name, _file_extension = os.path.splitext(_dst_filename)
             try:
-                if os.path.exists(_md5_file):
-                    _dst_md5_file = os.path.join(_dst_dir, os.path.basename(''.join([os.path.basename(_base_name), ".md5"])))
-                    log.info("Moving {} to {}".format(_md5_file, _dst_md5_file))
-                    os.rename(_md5_file, _dst_md5_file)
-                    # os.remove(_md5_file)
+                for _ext in ('.md5', '.md5_processed', '{}.aux.xml'.format(_file_extension)):
+                    _aux_file = os.path.join(self.src_dir, ''.join([_base_name, _ext]))
+                    log.info("Checking {} ...".format(_aux_file))
+                    if os.path.exists(_aux_file):
+                        _dst_aux_filename = os.path.join(_dst_dir, os.path.basename(_aux_file))
+                        log.info("Moving {} to {}".format(_aux_file, _dst_aux_filename))
+                        os.rename(_aux_file, _dst_aux_filename)
             except Exception as e:
                 log.exception(e)
 
@@ -231,8 +233,6 @@ class MoveFilesOperator(BaseOperator):
                     os.remove(_org_file)
             except Exception as e:
                 log.exception(e)
-
-            filenames_list.append(dst_filename)
 
         log.info(filenames_list)
         return filenames_list
