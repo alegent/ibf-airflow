@@ -77,7 +77,7 @@ gdal_info_task = GDALInfoEGEOSValidOperator(
 
 gdal_translate_task = GDALTranslateOperator(
     task_id='gdal_translate_task',
-    get_inputs_from=search_task.task_id,
+    get_inputs_from=gdal_info_task.task_id,
     output_type=S2NDVIC.output_type,
     creation_options=S2NDVIC.creation_options,
     dag=dag

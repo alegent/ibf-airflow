@@ -308,9 +308,28 @@ class GDALInfoEGEOSValidOperator(BaseOperator):
 
     def execute(self, context):
         input_paths = context["task_instance"].xcom_pull(self.get_inputs_from, key=XCOM_RETURN_KEY)
+
         if input_paths is None:
             log.info("Nothing to process")
             return None
+
+        # If message from XCom is a string with single file path, turn it into a string
+        if isinstance(input_paths, six.string_types):
+            input_paths = [input_paths]
+
+        if not len(input_paths):
+            log.info("Nothing to process")
+            return None
+
+        log.info(input_paths[0])
+        working_dir = os.path.dirname(input_paths[0])
+        try:
+            os.makedirs(working_dir)
+        except OSError as exc:
+            if exc.errno == 17:
+                pass  # directory already exists
+            else:
+                raise
 
         output_paths = []
         for input_path in input_paths:
