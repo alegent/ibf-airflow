@@ -351,7 +351,7 @@ class GDALInfoEGEOSValidOperator(BaseOperator):
                         break
                 elif len(lines.split(' ')) > 1 and lines.split(" ")[0] + ' ' + lines.split(' ')[1] == 'Pixel Size':
                     tif_pixel_size = [float(((lines.split(" ")[3]).split(',')[0])[1:]),
-                                      float(((lines.split(" ")[3]).split(',')[1])[0:-2])]
+                                      float(((lines.split(" ")[3]).split(',')[1])[0:-1])]
                     if tif_pixel_size[0] != 10 or tif_pixel_size[1] != -10:
                         return_message = '[incorrect pixel size {} {}]'.format(tif_pixel_size[0], tif_pixel_size[1])
                         break
@@ -361,7 +361,7 @@ class GDALInfoEGEOSValidOperator(BaseOperator):
                         return_message = '[incorrect Compression type {}]'.format(tif_compression)
                         break
                 elif len(lines.split(' ')) > 1 and lines[:14] == '  NoData Value':
-                    tif_no_data = lines.split(' ')[3][6:-1]
+                    tif_no_data = lines.split(' ')[3][6:]
                     if self.env_parameter in ('MSAVI', 'NDVI'):
                         if tif_no_data != '-32768':
                             return_message = '[incorrect NO-DATA value {}]'.format(tif_no_data)
