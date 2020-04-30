@@ -5,6 +5,7 @@ import config.s2_msavi as S2MSAVIC
 from airflow.operators import (
     MoveFilesOperator,
     SearchFilesOperator,
+    GDALInfoEGEOSValidOperator,
     GDALTranslateOperator,
     GDALAddoOperator,
     GSAddMosaicGranule
@@ -66,6 +67,14 @@ search_task = SearchFilesOperator(
     task_id='search_product_task',
     src_dir=S2MSAVIC.src_dir,
     filename_filter=S2MSAVIC.filename_filter,
+    dag=dag
+)
+
+gdal_info_task = GDALInfoEGEOSValidOperator(
+    task_id='gdal_info_task',
+    get_inputs_from=search_task.task_id,
+    env_parameter=S2MSAVIC.env_parameter,
+    wrg_dir=S2MSAVIC.wrg_dir,
     dag=dag
 )
 
@@ -133,4 +142,4 @@ mosaic_granules_ingest_task = GSAddMosaicGranule(
 #     dag=dag
 # )
 
-search_task >> gdal_translate_task >> gdal_addo_task >> move_translated_files_task >> mosaic_granules_ingest_task
+search_task >> gdal_info_task >> gdal_translate_task >> gdal_addo_task >> move_translated_files_task >> mosaic_granules_ingest_task

@@ -5,6 +5,7 @@ import config.s2_ndvi as S2NDVIC
 from airflow.operators import (
     MoveFilesOperator,
     SearchFilesOperator,
+    GDALInfoEGEOSValidOperator,
     GDALTranslateOperator,
     GDALAddoOperator,
     GSAddMosaicGranule
@@ -66,6 +67,14 @@ search_task = SearchFilesOperator(
     dag=dag
 )
 
+gdal_info_task = GDALInfoEGEOSValidOperator(
+    task_id='gdal_info_task',
+    get_inputs_from=search_task.task_id,
+    env_parameter=S2NDVIC.env_parameter,
+    wrg_dir=S2NDVIC.wrg_dir,
+    dag=dag
+)
+
 gdal_translate_task = GDALTranslateOperator(
     task_id='gdal_translate_task',
     get_inputs_from=search_task.task_id,
@@ -105,4 +114,4 @@ mosaic_granules_ingest_task = GSAddMosaicGranule(
     dag=dag
 )
 
-search_task >> gdal_translate_task >> gdal_addo_task >> move_translated_files_task >> mosaic_granules_ingest_task
+search_task >> gdal_info_task >> gdal_translate_task >> gdal_addo_task >> move_translated_files_task >> mosaic_granules_ingest_task

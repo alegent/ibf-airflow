@@ -287,11 +287,96 @@ class GDALInfoOperator(BaseOperator):
         return gdalinfo_outputs
 
 
+class GDALInfoEGEOSValidOperator(BaseOperator):
+    """ Execute gdaladdo with given options on list of files fetched from XCom. Returns output files paths to XCom.
+
+    Args:
+        get_inputs_from (str): task_id used to fetch input files list from XCom
+        env_parameter (str): one of {"MSAVI", "NDVI", "RGB"}
+        wrg_dir (str): absolute path where wrong files will be moved
+
+    Returns:
+        list: list containing output files path
+    """
+
+    @apply_defaults
+    def __init__(self, get_inputs_from, env_parameter, wrg_dir, *args, **kwargs):
+        super(GDALInfoEGEOSValidOperator, self).__init__(*args, **kwargs)
+        self.get_inputs_from = get_inputs_from
+        self.env_parameter = env_parameter
+        self.wrg_dir = wrg_dir
+
+    def execute(self, context):
+        input_paths = context["task_instance"].xcom_pull(self.get_inputs_from, key=XCOM_RETURN_KEY)
+        if input_paths is None:
+            log.info("Nothing to process")
+            return None
+
+        output_paths = []
+        for input_path in input_paths:
+            command = ["gdalinfo", "-stats"]
+            log.info("Running GDALInfo on {}...".format(input_path))
+            command.append(input_path)
+            gdalinfo_output = check_output(command)
+            log.info("{}".format(gdalinfo_output))
+            return_message = 0
+            tif_compression = 'No compression'
+            for lines in gdalinfo_output.decode().split("\n"):
+                if lines.startswith("ERROR") or "no valid pixels found in sampling" in lines:
+                    return_message = 1
+                    break
+                elif len(lines.split(' ')) > 1 and lines.split(" ")[0] + ' ' + lines.split(' ')[1] == 'Size is':
+                    tif_file_size = [int((lines.split(" ")[2]).split(',')[0]), int(lines.split(" ")[3])]
+                    if not (4000 <= tif_file_size[0] <= 4002 or 4000 <= tif_file_size[1] <= 4002):
+                        return_message = 1
+                        break
+                elif len(lines.split(' ')) > 1 and lines.split(" ")[0] + ' ' + lines.split(' ')[1] == 'Pixel Size':
+                    tif_pixel_size = [float(((lines.split(" ")[3]).split(',')[0])[1:]),
+                                      float(((lines.split(" ")[3]).split(',')[1])[0:-2])]
+                    if tif_pixel_size[0] != 10 or tif_pixel_size[1] != -10:
+                        return_message = 1
+                        break
+                elif len(lines.split(' ')) > 1 and lines.split("=")[0] == '  COMPRESSION':
+                    tif_compression = (lines.split('=')[1])[:-1]
+                    if tif_compression != 'DEFLATE':
+                        return_message = 1
+                        break
+                elif len(lines.split(' ')) > 1 and lines[:14] == '  NoData Value':
+                    tif_no_data = lines.split(' ')[3][6:-1]
+                    if self.env_parameter in ('MSAVI', 'NDVI'):
+                        if tif_no_data != '-32768':
+                            return_message = 1
+                            break
+                    elif self.env_parameter == 'RGB':
+                        if tif_no_data != '0':
+                            return_message = 1
+                            break
+            if return_message == 1 or tif_compression != 'DEFLATE':
+                log.info("ERROR: Image '{}' is not valid accordingly to E-GEOS checks...".format(input_path))
+                dst_filename = os.path.join(self.wrg_dir, os.path.basename(input_path))
+                log.info("Moving {} to {}".format(input_path, dst_filename))
+                os.rename(input_path, dst_filename)
+                _base_name, _file_extension = os.path.splitext(dst_filename)
+                _md5_file = input_path.replace(_file_extension, '.md5')
+                if os.path.exists(_md5_file):
+                    dst_filename = os.path.join(self.wrg_dir, os.path.basename(_md5_file))
+                    log.info("Moving {} to {}".format(_md5_file, dst_filename))
+                    os.rename(_md5_file, dst_filename)
+            else:
+                log.info("OK: Image '{}' is valid accordingly to E-GEOS checks...".format(input_path))
+                output_path = input_path
+                output_paths.append(output_path)
+
+        log.info(output_paths)
+        return output_paths
+
+
 class GDALPlugin(AirflowPlugin):
     name = "GDAL_plugin"
     operators = [
         GDALWarpOperator,
         GDALAddoOperator,
         GDALTranslateOperator,
-        GDALInfoOperator
+        GDALInfoOperator,
+        GDALInfoEGEOSValidOperator
     ]

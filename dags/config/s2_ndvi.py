@@ -2,18 +2,19 @@
 # DAG
 #
 # dag_schedule_interval='@hourly'
-dag_schedule_interval = '0/1 * * * *'
+dag_schedule_interval = '0/10 * * * *'
 
 #
 # Input Files
 #
 id = "S2_NDVI"
-filename_filter = "S2* NDVI*"
+env_parameter = 'NDVI'
 platformname = 'Sentinel-2 NDVI'
 
-src_dir = '/opt/data_samples/IBF/_input_EGEOS_NDVI'
-dst_dir = '/opt/data_samples/IBF/NDVI'
-filename_filter = '*.TIF'
+src_dir = '/home/nfs_sat_data/satfarming/sentinel2/it/master_test/_input_EGEOS_NDVI_test'
+dst_dir = '/home/nfs_sat_data/satfarming/sentinel2/it/master_test/NDVI_test'
+wrg_dir = '/home/nfs_sat_data/satfarming/sentinel2/it/master_test/wrong_EGEOS_satellite_data'
+filename_filter = '*.tif'
 regex = r'.*\_([a-zA-Z0-9]{6})\_.*'
 
 #
@@ -38,9 +39,9 @@ compress_overview = True
 #
 # GeoServer
 #
-geoserver_rest_url = "http://localhost:8080/geoserver/rest"
-geoserver_user = "*********"
-geoserver_password = "*********"
+geoserver_rest_url = "https://areariservata.ibfservizi.it/geoserver/rest"
+geoserver_user = "***************"
+geoserver_password = "***********************"
 geoserver_workspace = "geonode"
 geoserver_store_name = "NDVI"
 geoserver_layer = "NDVI"
