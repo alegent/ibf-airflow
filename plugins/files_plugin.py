@@ -217,10 +217,10 @@ class MoveFilesOperator(BaseOperator):
             log.info("Checking {} ...".format(_md5_file))
             try:
                 if os.path.exists(_md5_file):
-                    # _dst_md5_file = os.path.join(_dst_dir, os.path.basename(''.join([os.path.basename(_base_name), ".md5"])))
-                    # log.info("Moving {} to {}".format(_md5_file, _dst_md5_file))
-                    # os.rename(_md5_file, _dst_md5_file)
-                    os.remove(_md5_file)
+                    _dst_md5_file = os.path.join(_dst_dir, os.path.basename(''.join([os.path.basename(_base_name), ".md5"])))
+                    log.info("Moving {} to {}".format(_md5_file, _dst_md5_file))
+                    os.rename(_md5_file, _dst_md5_file)
+                    # os.remove(_md5_file)
             except Exception as e:
                 log.exception(e)
 
