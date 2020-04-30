@@ -318,41 +318,41 @@ class GDALInfoEGEOSValidOperator(BaseOperator):
             log.info("Running GDALInfo on {}...".format(input_path))
             command.append(input_path)
             gdalinfo_output = check_output(command)
-            log.info("{}".format(gdalinfo_output))
-            return_message = 0
+            log.info("{}".format(gdalinfo_output.decode()))
+            return_message = None
             tif_compression = 'No compression'
             for lines in gdalinfo_output.decode().split("\n"):
                 if lines.startswith("ERROR") or "no valid pixels found in sampling" in lines:
-                    return_message = 1
+                    return_message = '[no valid pixels found in sampling]'
                     break
                 elif len(lines.split(' ')) > 1 and lines.split(" ")[0] + ' ' + lines.split(' ')[1] == 'Size is':
                     tif_file_size = [int((lines.split(" ")[2]).split(',')[0]), int(lines.split(" ")[3])]
                     if not (4000 <= tif_file_size[0] <= 4002 or 4000 <= tif_file_size[1] <= 4002):
-                        return_message = 1
+                        return_message = '[incorrect image size {} {}]'.format(tif_file_size[0], tif_file_size[1])
                         break
                 elif len(lines.split(' ')) > 1 and lines.split(" ")[0] + ' ' + lines.split(' ')[1] == 'Pixel Size':
                     tif_pixel_size = [float(((lines.split(" ")[3]).split(',')[0])[1:]),
                                       float(((lines.split(" ")[3]).split(',')[1])[0:-2])]
                     if tif_pixel_size[0] != 10 or tif_pixel_size[1] != -10:
-                        return_message = 1
+                        return_message = '[incorrect pixel size {} {}]'.format(tif_pixel_size[0], tif_pixel_size[1])
                         break
                 elif len(lines.split(' ')) > 1 and lines.split("=")[0] == '  COMPRESSION':
                     tif_compression = (lines.split('=')[1])[:-1]
                     if tif_compression != 'DEFLATE':
-                        return_message = 1
+                        return_message = '[incorrect Compression type {}]'.format(tif_compression)
                         break
                 elif len(lines.split(' ')) > 1 and lines[:14] == '  NoData Value':
                     tif_no_data = lines.split(' ')[3][6:-1]
                     if self.env_parameter in ('MSAVI', 'NDVI'):
                         if tif_no_data != '-32768':
-                            return_message = 1
+                            return_message = '[incorrect NO-DATA value {}]'.format(tif_no_data)
                             break
                     elif self.env_parameter == 'RGB':
                         if tif_no_data != '0':
-                            return_message = 1
+                            return_message = '[incorrect NO-DATA value {}]'.format(tif_no_data)
                             break
-            if return_message == 1 or tif_compression != 'DEFLATE':
-                log.info("ERROR: Image '{}' is not valid accordingly to E-GEOS checks...".format(input_path))
+            if return_message or tif_compression != 'DEFLATE':
+                log.info("ERROR: Image '{}' is not valid accordingly to E-GEOS checks {}".format(input_path, return_message))
                 dst_filename = os.path.join(self.wrg_dir, os.path.basename(input_path))
                 log.info("Moving {} to {}".format(input_path, dst_filename))
                 os.rename(input_path, dst_filename)
