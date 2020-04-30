@@ -356,7 +356,7 @@ class GDALInfoEGEOSValidOperator(BaseOperator):
                         return_message = '[incorrect pixel size {} {}]'.format(tif_pixel_size[0], tif_pixel_size[1])
                         break
                 elif len(lines.split(' ')) > 1 and lines.split("=")[0] == '  COMPRESSION':
-                    tif_compression = (lines.split('=')[1])[:-1]
+                    tif_compression = lines.split('=')[1]
                     if tif_compression != 'DEFLATE':
                         return_message = '[incorrect Compression type {}]'.format(tif_compression)
                         break
@@ -376,11 +376,12 @@ class GDALInfoEGEOSValidOperator(BaseOperator):
                 log.info("Moving {} to {}".format(input_path, dst_filename))
                 os.rename(input_path, dst_filename)
                 _base_name, _file_extension = os.path.splitext(dst_filename)
-                _md5_file = input_path.replace(_file_extension, '.md5')
-                if os.path.exists(_md5_file):
-                    dst_filename = os.path.join(self.wrg_dir, os.path.basename(_md5_file))
-                    log.info("Moving {} to {}".format(_md5_file, dst_filename))
-                    os.rename(_md5_file, dst_filename)
+                for _ext in ('.md5', '.md5_processed', '{}.aux.xml'.format(_file_extension)):
+                    _aux_file = input_path.replace(_file_extension, _ext)
+                    if os.path.exists(_aux_file):
+                        dst_filename = os.path.join(self.wrg_dir, os.path.basename(_aux_file))
+                        log.info("Moving {} to {}".format(_aux_file, dst_filename))
+                        os.rename(_aux_file, dst_filename)
             else:
                 log.info("OK: Image '{}' is valid accordingly to E-GEOS checks...".format(input_path))
                 output_path = input_path
